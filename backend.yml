@@ -16,22 +16,47 @@ spec:
     spec:
       containers:
         - name: backend
-          image: dpage/pgadmin4:6.17
+          image: klerith/k8s-teslo-backend:1.1.0
           ports:
-            - containerPort: 80
+            - containerPort: 3000
           env:
-              - name: PGADMIN_DEFAULT_EMAIL
-                valueFrom:
-                  secretKeyRef:
-                    name: backend-secrets
-                    key: PG_USER_EMAIL
-              - name: PGADMIN_DEFAULT_PASSWORD
-                valueFrom:
-                  secretKeyRef:
-                    name: pg-admin-secrets
-                    key: PG_PASSWORD
-              - name: PGADMIN_CONFIG_ENHANCED_COOKIE_PROTECTION
-                value: "False"
+          - name: APP_VERSION
+            value: "1.1.0"
+          - name: PORT
+            value: "3000"
+          - name: STAGE
+            value: "prod"
+          - name: DB_NAME
+            valueFrom:
+              configMapKeyRef:
+                name: postgres-config
+                key: DB_NAME
+          - name: DB_HOST
+            valueFrom:
+              configMapKeyRef:
+                name: postgres-config
+                key: DB_HOST
+          - name: DB_PORT
+            valueFrom:
+              configMapKeyRef:
+                name: postgres-config
+                key: DB_PORT
+          - name: DB_USERNAME
+            valueFrom:
+              secretKeyRef:
+                name: postgres-secrets
+                key: DB_USER
+          - name: DB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: postgres-secrets
+                key: DB_PASSWORD
+          - name: JWT_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: backend-secrets
+                key: JWT_SEED
+
 ---
 apiVersion: v1
 kind: Service
@@ -44,5 +69,6 @@ spec:
     app: backend
   ports:
     - protocol: TCP
-      port: 80
-      targetPort: 80
+      port: 3000
+      targetPort: 3000
+      nodePort: 30300
